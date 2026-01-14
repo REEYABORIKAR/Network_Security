@@ -5,6 +5,7 @@ from networksecurity.entity.artifact_entity import DataIngestionArtifact
 
 import os
 import sys
+import yaml
 import numpy as np
 import pandas as pd
 import pymongo

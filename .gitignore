@@ -13,4 +13,4 @@ package-lock.json
 # Data (optional)
 *.csv
 
-logs/
+logs
