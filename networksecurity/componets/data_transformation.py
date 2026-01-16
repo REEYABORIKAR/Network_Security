@@ -9,7 +9,7 @@ from networksecurity.constant.training_pipeline import TARGET_COLUMNS
 from networksecurity.constant.training_pipeline import DATA_TRANSFORMATION_IMPUTER_PARAMS
 
 from networksecurity.entity.artifact_entity import (
-    DatatransformationArtifact,
+    DataTransformationArtifact,
     DataValidationArtifact
 )
 
@@ -19,7 +19,7 @@ from networksecurity.logging.logger import logging
 from networksecurity.utils.main_utils.utils import save_numpy_array_data,save_object
 
 
-class DataTransfomation:
+class DataTransformation:
     def __init__ (self,data_validation_artifact: DataValidationArtifact,
                   data_transformation_config: DataTransformationConfig):
         try:
@@ -50,12 +50,12 @@ class DataTransfomation:
         
         
 
-    def initiate_data_transformation(self)-> DatatransformationArtifact:
+    def initiate_data_transformation(self)-> DataTransformationArtifact:
         logging.info("Entered initiate_data_transformation method of DataTransformation class")
         try:
             logging.info("Starting data transformation")
-            train_df=DataTransfomation.read_data(self.data_validation_artifact.valid_train_file_path)
-            test_df=DataTransfomation.read_data(self.data_validation_artifact.valid_test_file_path)
+            train_df=DataTransformation.read_data(self.data_validation_artifact.valid_train_file_path)
+            test_df=DataTransformation.read_data(self.data_validation_artifact.valid_test_file_path)
 
             ## training dataframe
             input_feature_train_df=train_df.drop(columns=[TARGET_COLUMNS],axis=1)
@@ -84,12 +84,13 @@ class DataTransfomation:
 
             # preparing artifacts
 
-            data_tranformation_artifacts= DatatransformationArtifact(
+            data_tranformation_artifacts= DataTransformationArtifact(
                 transformed_object_file_path=self.data_transformation_config.transformed_object_file_path,
                 transformed_train_file_path= self.data_transformation_config.transformed_train_file_path,
                 transformed_test_file_path= self.data_transformation_config.transformed_test_file_path
             )
-        
+
+            return data_tranformation_artifacts
         
         except Exception as e:
             raise NetworkSecurityException(e,sys)
