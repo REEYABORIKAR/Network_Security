@@ -19,8 +19,12 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier, RandomForestClassifier
 
 import mlflow
+mlflow.set_tracking_uri(
+    "https://dagshub.com/REEYABORIKAR/Network_Security.mlflow"
+)
+
 import dagshub
-dagshub.init(repo_owner='REEYABORIKAR', repo_name='Network_Security', mlflow=True)
+# dagshub.init(repo_owner='REEYABORIKAR', repo_name='Network_Security', mlflow=True, host="https://dagshub.com",)
 
 
 
