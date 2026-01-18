@@ -86,6 +86,10 @@ app.add_middleware(
 
 templates = Jinja2Templates(directory=TEMPLATE_DIR)
 
+@app.get("/__identity__")
+def identity():
+    return {"app": "ROOT app.py with prediction"}
+
 # --- GET Route: Root ---
 @app.get("/")
 def root():
