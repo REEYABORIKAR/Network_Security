@@ -18,40 +18,53 @@ from networksecurity.utils.ml_utils.model.estimator import NetworkModel
 from networksecurity.utils.main_utils.utils import load_object
 from networksecurity.constant.training_pipeline import (
     DATA_INGESTION_COLLECTION_NAME,
-    DATA_INGESTION_DATABASE_NAME
+    DATA_INGESTION_DATABASE_NAME,
 )
 
 # ------------------------------------------------------------------
-# Paths (Docker-safe)
+# Paths (Docker / Hugging Face safe)
 # ------------------------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 MODEL_DIR = os.path.join(BASE_DIR, "final_models")
 
 # ------------------------------------------------------------------
-# Lifespan (startup / shutdown)
+# Lifespan (Startup / Shutdown)
 # ------------------------------------------------------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-        # --------- MongoDB ----------
+        logging.info("Application startup initiated")
+
+        # ---------------- MongoDB ----------------
         mongo_db_url = os.getenv("MONGO_DB_URL")
         if not mongo_db_url:
-            raise ValueError("MONGO_DB_URL is not set in environment variables")
+            raise ValueError("MONGO_DB_URL environment variable not set")
 
         ca = certifi.where()
-        client = pymongo.MongoClient(mongo_db_url, tlsCAFile=ca)
+        mongo_client = pymongo.MongoClient(
+            mongo_db_url,
+            tlsCAFile=ca
+        )
 
-        database = client[DATA_INGESTION_DATABASE_NAME]
+        database = mongo_client[DATA_INGESTION_DATABASE_NAME]
         collection = database[DATA_INGESTION_COLLECTION_NAME]
 
-        app.state.mongo_client = client
+        app.state.mongo_client = mongo_client
         app.state.database = database
         app.state.collection = collection
 
-        # --------- Load ML Models ----------
+        logging.info("MongoDB connection established")
+
+        # ---------------- Load ML Models ----------------
         preprocessor_path = os.path.join(MODEL_DIR, "preprocessor.pkl")
         model_path = os.path.join(MODEL_DIR, "model.pkl")
+
+        if not os.path.exists(preprocessor_path):
+            raise FileNotFoundError(f"Preprocessor not found at {preprocessor_path}")
+
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model not found at {model_path}")
 
         preprocessor = load_object(preprocessor_path)
         model = load_object(model_path)
@@ -61,16 +74,15 @@ async def lifespan(app: FastAPI):
             model=model
         )
 
-        logging.info("Application startup completed successfully")
+        logging.info("ML model and preprocessor loaded successfully")
 
-        yield
+        yield  # ---- App is running ----
 
     except Exception as e:
-        logging.error("Startup failed")
+        logging.error("Application startup failed")
         raise NetworkSecurityException(e, sys)
 
     finally:
-        # --------- Shutdown ----------
         mongo_client = getattr(app.state, "mongo_client", None)
         if mongo_client:
             mongo_client.close()
@@ -79,7 +91,12 @@ async def lifespan(app: FastAPI):
 # ------------------------------------------------------------------
 # FastAPI App
 # ------------------------------------------------------------------
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title="Network Security App",
+    description="Phishing Detection & Network Security ML API",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 # ------------------------------------------------------------------
 # Middleware
@@ -105,14 +122,16 @@ def root():
     """Hugging Face health check"""
     return RedirectResponse(url="/docs")
 
+
 @app.get("/train")
 async def train_route():
     try:
         train_pipeline = TrainingPipeline()
         train_pipeline.run_pipeline()
-        return Response("Training is Successful")
+        return Response("Training completed successfully")
     except Exception as e:
         raise NetworkSecurityException(e, sys)
+
 
 @app.post("/predict")
 async def predict_route(request: Request, file: UploadFile = File(...)):
@@ -122,7 +141,7 @@ async def predict_route(request: Request, file: UploadFile = File(...)):
         network_model = request.app.state.network_model
         predictions = network_model.predict(df)
 
-        df["predicted_column"] = predictions
+        df["prediction"] = predictions
 
         output_dir = os.path.join(BASE_DIR, "prediction_output")
         os.makedirs(output_dir, exist_ok=True)
@@ -130,7 +149,7 @@ async def predict_route(request: Request, file: UploadFile = File(...)):
         output_path = os.path.join(output_dir, "output.csv")
         df.to_csv(output_path, index=False)
 
-        table_html = df.to_html(classes="table table-striped")
+        table_html = df.to_html(classes="table table-striped", index=False)
 
         return templates.TemplateResponse(
             "table.html",
