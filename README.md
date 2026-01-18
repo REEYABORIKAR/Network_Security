@@ -1,3 +1,9 @@
+---
+title: Network Security App
+sdk: docker
+app_port: 7860
+---
+
 # Network Security: Phishing Data Detection
 
 This project implements a machine learning pipeline to detect phishing attempts based on network security data. It includes data ingestion, validation, transformation, model training, and a web interface for real-time predictions.
