@@ -15,6 +15,15 @@ class TrainingPipelineConfig:
         self.artifact_dir= os.path.join(self.artifact_name,timestamp)
         self.timestamp: str=timestamp
 
+from dataclasses import dataclass
+
+@dataclass
+class DataIngestionConfig:
+    dataset_file_path: str = "Network_Data/phisingData.csv"
+    train_test_split_ratio: float = 0.2
+    training_file_path: str = "artifact/data_ingestion/train.csv"
+    testing_file_path: str = "artifact/data_ingestion/test.csv"
+
 class DataIngestionConfig:
     def __init__(self,training_pipeline_config):
         self.data_ingestion_dir:str=os.path.join(

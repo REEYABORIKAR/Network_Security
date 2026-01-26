@@ -1,8 +1,8 @@
 import os
 import sys
-import certifi
+# import certifi
 import pandas as pd
-import pymongo
+# import pymongo
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, UploadFile, Request
@@ -16,10 +16,10 @@ from networksecurity.exception.exception import NetworkSecurityException
 from networksecurity.pipeline.training_pipeline import TrainingPipeline
 from networksecurity.utils.ml_utils.model.estimator import NetworkModel
 from networksecurity.utils.main_utils.utils import load_object
-from networksecurity.constant.training_pipeline import (
-    DATA_INGESTION_COLLECTION_NAME,
-    DATA_INGESTION_DATABASE_NAME,
-)
+# from networksecurity.constant.training_pipeline import (
+#     DATA_INGESTION_COLLECTION_NAME,
+#     DATA_INGESTION_DATABASE_NAME,
+# )
 
 # --- Path Configurations ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -32,19 +32,21 @@ async def lifespan(app: FastAPI):
     try:
         logging.info("Application startup initiated")
 
-        # 1. Establish MongoDB Connection
-        mongo_db_url = os.getenv("MONGO_DB_URL")
-        if not mongo_db_url:
-            raise ValueError("MONGO_DB_URL environment variable not set")
+        # # 1. Establish MongoDB Connection
+        # mongo_db_url = os.getenv("MONGO_DB_URL")
+        # if not mongo_db_url:
+        #     raise ValueError("MONGO_DB_URL environment variable not set")
 
-        ca = certifi.where()
-        mongo_client = pymongo.MongoClient(mongo_db_url, tlsCAFile=ca)
+        # ca = certifi.where()
+        # mongo_client = pymongo.MongoClient(mongo_db_url, tlsCAFile=ca)
 
-        app.state.mongo_client = mongo_client
-        app.state.database = mongo_client[DATA_INGESTION_DATABASE_NAME]
-        app.state.collection = app.state.database[DATA_INGESTION_COLLECTION_NAME]
+        # app.state.mongo_client = mongo_client
+        # app.state.database = mongo_client[DATA_INGESTION_DATABASE_NAME]
+        # app.state.collection = app.state.database[DATA_INGESTION_COLLECTION_NAME]
 
-        logging.info("MongoDB connection established")
+        # logging.info("MongoDB connection established")
+
+
 
         # 2. Load ML Artifacts (Preprocessor and Model)
         preprocessor_path = os.path.join(MODEL_DIR, "preprocessor.pkl")
@@ -64,11 +66,11 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logging.error(f"Application startup failed: {str(e)}")
         raise NetworkSecurityException(e, sys)
-    finally:
-        # Cleanup on shutdown
-        if hasattr(app.state, "mongo_client"):
-            app.state.mongo_client.close()
-            logging.info("MongoDB connection closed")
+    # finally:
+    #     # Cleanup on shutdown
+    #     if hasattr(app.state, "mongo_client"):
+    #         app.state.mongo_client.close()
+    #         logging.info("MongoDB connection closed")
 
 app = FastAPI(
     title="Network Security API",
@@ -145,4 +147,4 @@ async def predict_route(request: Request, file: UploadFile = File(...)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="localhost", port=8000)

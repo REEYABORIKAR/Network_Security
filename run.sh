@@ -1,0 +1,1 @@
+docker run -p 7860:7860 -v $(pwd)/prediction_output:/app/prediction_output -e MONGO_DB_URL="mongodb+srv://reeyaborikar02_db_user:Admin123@cluster0.pfmesue.mongodb.net/?retryWrites=true&w=majority" networksecurity

@@ -5,6 +5,12 @@ class DataIngestionArtifact:
     trained_file_path : str
     test_file_path : str
 
+# # class DataIngestionConfig:
+#     dataset_file_path: str = "Network_Data/phisingData.csv"
+#     train_test_split_ratio: float = 0.2
+#     training_file_path: str = "artifact/data_ingestion/train.csv"
+#     testing_file_path: str = "artifact/data_ingestion/test.csv"
+
 @dataclass
 class DataValidationArtifact:
     validation_status: bool
